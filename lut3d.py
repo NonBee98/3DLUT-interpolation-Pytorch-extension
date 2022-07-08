@@ -50,7 +50,7 @@ class TrilinearInterpolationFunction(torch.autograd.Function):
         return lut, output
     
     @staticmethod
-    def backward(ctx, lut_grad, x_grad):
+    def backward(ctx, lut_grad: torch.Tensor, x_grad: torch.Tensor):
         
         lut, x, int_package, float_package = ctx.saved_variables
         dim, shift, W, H, batch = int_package
@@ -58,8 +58,8 @@ class TrilinearInterpolationFunction(torch.autograd.Function):
         binsize = float(float_package[0])
             
         assert 1 == trilinear.backward(x, 
-                                       x_grad, 
-                                       lut_grad,
+                                       x_grad.contiguous(), 
+                                       lut_grad.contiguous(),
                                        dim, 
                                        shift, 
                                        binsize, 
