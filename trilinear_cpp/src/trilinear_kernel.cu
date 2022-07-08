@@ -113,12 +113,12 @@ __global__ void TriLinearBackward(const int nthreads, const float *image, const 
         int g_1 = g_0 + 1;
         int b_1 = b_0 + 1;
 
-        CLIP(r_0, 0, dim - 1);
-        CLIP(g_0, 0, dim - 1);
-        CLIP(b_0, 0, dim - 1);
-        CLIP(r_1, 0, dim - 1);
-        CLIP(g_1, 0, dim - 1);
-        CLIP(b_1, 0, dim - 1);
+        r_0 = CLIP(r_0, 0, dim - 1);
+        g_0 = CLIP(g_0, 0, dim - 1);
+        b_0 = CLIP(b_0, 0, dim - 1);
+        r_1 = CLIP(r_1, 0, dim - 1);
+        g_1 = CLIP(g_1, 0, dim - 1);
+        b_1 = CLIP(b_1, 0, dim - 1);
 
         float r_d = r_loc - r_0;
         float g_d = g_loc - g_0;
