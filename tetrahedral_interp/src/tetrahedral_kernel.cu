@@ -14,9 +14,13 @@ __global__ void TetrahedralForward(const int nthreads, const float *lut, const f
     CUDA_1D_KERNEL_LOOP(index, nthreads)
     {
 
-        float r = image[index];
-        float g = image[index + width * height];
-        float b = image[index + width * height * 2];
+        int r_index = index;
+        int g_index = index + width * height;
+        int b_index = index + width * height * 2;
+
+        float r = image[r_index];
+        float g = image[g_index];
+        float b = image[b_index];
 
         float r_loc = r * (dim - 1);
         float g_loc = g * (dim - 1);
@@ -58,20 +62,20 @@ __global__ void TetrahedralForward(const int nthreads, const float *lut, const f
         int id011 = INDEX(0, r_0, g_1, b_1, dim, dim, dim);
         int id111 = INDEX(0, r_1, g_1, b_1, dim, dim, dim);
 
-        output[index] = w000 * lut[id000] + w100 * lut[id100] +
-                        w010 * lut[id010] + w110 * lut[id110] +
-                        w001 * lut[id001] + w101 * lut[id101] +
-                        w011 * lut[id011] + w111 * lut[id111];
+        output[r_index] = w000 * lut[id000] + w100 * lut[id100] +
+                          w010 * lut[id010] + w110 * lut[id110] +
+                          w001 * lut[id001] + w101 * lut[id101] +
+                          w011 * lut[id011] + w111 * lut[id111];
 
-        output[index + width * height] = w000 * lut[id000 + shift] + w100 * lut[id100 + shift] +
-                                         w010 * lut[id010 + shift] + w110 * lut[id110 + shift] +
-                                         w001 * lut[id001 + shift] + w101 * lut[id101 + shift] +
-                                         w011 * lut[id011 + shift] + w111 * lut[id111 + shift];
+        output[g_index] = w000 * lut[id000 + shift] + w100 * lut[id100 + shift] +
+                          w010 * lut[id010 + shift] + w110 * lut[id110 + shift] +
+                          w001 * lut[id001 + shift] + w101 * lut[id101 + shift] +
+                          w011 * lut[id011 + shift] + w111 * lut[id111 + shift];
 
-        output[index + width * height * 2] = w000 * lut[id000 + shift * 2] + w100 * lut[id100 + shift * 2] +
-                                             w010 * lut[id010 + shift * 2] + w110 * lut[id110 + shift * 2] +
-                                             w001 * lut[id001 + shift * 2] + w101 * lut[id101 + shift * 2] +
-                                             w011 * lut[id011 + shift * 2] + w111 * lut[id111 + shift * 2];
+        output[b_index] = w000 * lut[id000 + shift * 2] + w100 * lut[id100 + shift * 2] +
+                          w010 * lut[id010 + shift * 2] + w110 * lut[id110 + shift * 2] +
+                          w001 * lut[id001 + shift * 2] + w101 * lut[id101 + shift * 2] +
+                          w011 * lut[id011 + shift * 2] + w111 * lut[id111 + shift * 2];
     }
 }
 
