@@ -19,20 +19,18 @@ class Lut3D(nn.Module):
 class TrilinearInterpolationFunction(torch.autograd.Function):
     @staticmethod
     def forward(ctx, lut: torch.Tensor, x: torch.Tensor):
-        x = x.contiguous()
-
         output = x.new(x.size()).contiguous()
         dim = lut.size()[-1]
         shift = dim ** 3
         binsize = 1.000001 / (dim-1)
-        C = x.size(1)
-        W = x.size(2)
-        H = x.size(3)
         batch = x.size(0)
+        C = x.size(1)
+        H = x.size(2)
+        W = x.size(3)
         assert C == 3, "Can only interpolate 3D images!"
         
-        trilinear.forward(lut, 
-                            x, 
+        trilinear.forward(lut.contiguous(), 
+                            x.contiguous(), 
                             output,
                             dim, 
                             shift, 
@@ -57,7 +55,7 @@ class TrilinearInterpolationFunction(torch.autograd.Function):
         dim, shift, W, H, batch = int(dim), int(shift), int(W), int(H), int(batch)
         binsize = float(float_package[0])
             
-        assert 1 == trilinear.backward(x, 
+        assert 1 == trilinear.backward(x.contiguous(), 
                                        x_grad.contiguous(), 
                                        lut_grad.contiguous(),
                                        dim, 

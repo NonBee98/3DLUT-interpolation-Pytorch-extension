@@ -85,6 +85,10 @@ void TriLinearForwardCpu(const float *lut, const float *image, float *output, co
                 float w011 = (1 - r_d) * g_d * b_d;
                 float w111 = r_d * g_d * b_d;
 
+                float point000R = lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)];
+                float point000G = lut[INDEX(1, r_0, g_0, b_0, dim, dim, dim)];
+                float point000B = lut[INDEX(2, r_0, g_0, b_0, dim, dim, dim)];
+
                 output[r_index] = w000 * lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)] +
                                   w100 * lut[INDEX(0, r_1, g_0, b_0, dim, dim, dim)] +
                                   w010 * lut[INDEX(0, r_0, g_1, b_0, dim, dim, dim)] +
