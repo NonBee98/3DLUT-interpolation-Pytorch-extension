@@ -54,6 +54,7 @@ class TrilinearInterpolationFunction(torch.autograd.Function):
         dim, shift, W, H, batch = int_package
         dim, shift, W, H, batch = int(dim), int(shift), int(W), int(H), int(batch)
         binsize = float(float_package[0])
+        lut_grad = lut_grad.detach().clone() 
             
         assert 1 == trilinear.backward(x.contiguous(), 
                                        x_grad.contiguous(), 
@@ -114,7 +115,7 @@ class TetrahedralInterpolationFunction(torch.autograd.Function):
         dim, shift, W, H, batch = int_package
         dim, shift, W, H, batch = int(dim), int(shift), int(W), int(H), int(batch)
         binsize = float(float_package[0])
-            
+        lut_grad = lut_grad.detach().clone()  
         assert 1 == tetrahedral.backward(x.contiguous(), 
                                        x_grad.contiguous(), 
                                        lut_grad.contiguous(),
