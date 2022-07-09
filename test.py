@@ -3,10 +3,10 @@ from lut3d import *
 import numpy as np
 import cv2
 import torch
-from colour.algebra.interpolation import table_interpolation, vertices_and_relative_coordinates
+from colour.algebra.interpolation import table_interpolation, table_interpolation_tetrahedral
 
 if __name__=='__main__':
-    lutRaw = colour.read_LUT("./35_Free_LUTs/Azrael 93.CUBE")
+    lutRaw = colour.read_LUT("./35_Free_LUTs/Korben 214.CUBE")
     lut = lutRaw.table.astype(np.float32)
     lut = torch.tensor(lut)
     lut = torch.permute(lut, (3, 0, 1, 2))
@@ -28,7 +28,7 @@ if __name__=='__main__':
     new_img = new_img.astype(np.uint8)
     cv2.imwrite("test.jpg", new_img)
 
-    new_img = table_interpolation(imgRaw, lutRaw.table)
+    new_img = table_interpolation_tetrahedral(imgRaw, lutRaw.table)
     new_img *= 255
     new_img = new_img.astype(np.uint8)
     new_img = cv2.cvtColor(new_img, cv2.COLOR_RGB2BGR)

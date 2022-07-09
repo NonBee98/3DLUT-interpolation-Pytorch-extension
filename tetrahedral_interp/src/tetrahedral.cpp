@@ -1,13 +1,13 @@
-#include "trilinear.h"
+#include "tetrahedral.h"
 #define CLIP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define INDEX(a, b, c, d, d1, d2, d3) ((a) * (d1) * (d2) * (d3) + (b) * (d2) * (d3) + (c) * (d3) + (d))
 
-void TriLinearForwardCpu(const float *lut, const float *image, float *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
+void TetrahedralForwardCpu(const float *lut, const float *image, float *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
 
-void TriLinearBackwardCpu(const float *image, const float *image_grad, float *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
+void TetrahedralBackwardCpu(const float *image, const float *image_grad, float *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
 
-int trilinear_forward(torch::Tensor lut, torch::Tensor image, torch::Tensor output,
-                      int lut_dim, int shift, float binsize, int width, int height, int batch)
+int tetrahedral_forward(torch::Tensor lut, torch::Tensor image, torch::Tensor output,
+                        int lut_dim, int shift, float binsize, int width, int height, int batch)
 {
     // Grab the input tensor
     float *lut_flat = lut.data_ptr<float>();
@@ -17,13 +17,13 @@ int trilinear_forward(torch::Tensor lut, torch::Tensor image, torch::Tensor outp
     auto image_size = image.sizes();
     int channels = image_size[1];
 
-    TriLinearForwardCpu(lut_flat, image_flat, output_flat, lut_dim, shift, binsize, width, height, channels, batch);
+    TetrahedralForwardCpu(lut_flat, image_flat, output_flat, lut_dim, shift, binsize, width, height, channels, batch);
 
     return 1;
 }
 
-int trilinear_backward(torch::Tensor image, torch::Tensor image_grad, torch::Tensor lut_grad,
-                       int lut_dim, int shift, float binsize, int width, int height, int batch)
+int tetrahedral_backward(torch::Tensor image, torch::Tensor image_grad, torch::Tensor lut_grad,
+                         int lut_dim, int shift, float binsize, int width, int height, int batch)
 {
     // Grab the input tensor
     float *image_grad_flat = image_grad.data_ptr<float>();
@@ -33,12 +33,12 @@ int trilinear_backward(torch::Tensor image, torch::Tensor image_grad, torch::Ten
     auto image_size = image.sizes();
     int channels = image_size[1];
 
-    TriLinearBackwardCpu(image_flat, image_grad_flat, lut_grad_flat, lut_dim, shift, binsize, width, height, channels, batch);
+    TetrahedralBackwardCpu(image_flat, image_grad_flat, lut_grad_flat, lut_dim, shift, binsize, width, height, channels, batch);
 
     return 1;
 }
 
-void TriLinearForwardCpu(const float *lut, const float *image, float *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch)
+void TetrahedralForwardCpu(const float *lut, const float *image, float *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch)
 {
     for (int batch_index = 0; batch_index < batch; ++batch_index)
     {
@@ -116,7 +116,7 @@ void TriLinearForwardCpu(const float *lut, const float *image, float *output, co
     }
 }
 
-void TriLinearBackwardCpu(const float *image, const float *image_grad, float *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch)
+void TetrahedralBackwardCpu(const float *image, const float *image_grad, float *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch)
 {
     const int output_size = height * width;
 
@@ -187,6 +187,6 @@ void TriLinearBackwardCpu(const float *image, const float *image_grad, float *lu
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
 {
-    m.def("forward", &trilinear_forward, "Trilinear forward");
-    m.def("backward", &trilinear_backward, "Trilinear backward");
+    m.def("forward", &tetrahedral_forward, "Tetrahedral forward");
+    m.def("backward", &tetrahedral_backward, "Tetrahedral backward");
 }
