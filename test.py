@@ -10,7 +10,7 @@ if __name__=='__main__':
     lut = lutRaw.table.astype(np.float32)
     lut = torch.tensor(lut)
     lut = torch.permute(lut, (3, 0, 1, 2))
-    img = cv2.imread('./0002-01.jpg')
+    img = cv2.imread('./0003.jpg')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32)
     imgRaw = img/255.
     img = np.expand_dims(imgRaw, 0)
@@ -28,8 +28,8 @@ if __name__=='__main__':
     new_img = new_img.astype(np.uint8)
     cv2.imwrite("test.jpg", new_img)
 
-    new_img = table_interpolation_tetrahedral(imgRaw, lutRaw.table)
-    new_img *= 255
-    new_img = new_img.astype(np.uint8)
-    new_img = cv2.cvtColor(new_img, cv2.COLOR_RGB2BGR)
-    cv2.imwrite("test2.jpg", new_img)
+    # new_img = table_interpolation_tetrahedral(imgRaw, lutRaw.table)
+    # new_img *= 255
+    # new_img = new_img.astype(np.uint8)
+    # new_img = cv2.cvtColor(new_img, cv2.COLOR_RGB2BGR)
+    # cv2.imwrite("test2.jpg", new_img)

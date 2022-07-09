@@ -50,22 +50,23 @@ class TrilinearInterpolationFunction(torch.autograd.Function):
     @staticmethod
     def backward(ctx, lut_grad: torch.Tensor, x_grad: torch.Tensor):
         
+        d_lut = d_x = None
         lut, x, int_package, float_package = ctx.saved_variables
         dim, shift, W, H, batch = int_package
         dim, shift, W, H, batch = int(dim), int(shift), int(W), int(H), int(batch)
         binsize = float(float_package[0])
-        lut_grad = lut_grad.detach().clone() 
+        d_lut = lut_grad.detach().clone() 
             
         assert 1 == trilinear.backward(x.contiguous(), 
                                        x_grad.contiguous(), 
-                                       lut_grad.contiguous(),
+                                       d_lut.contiguous(),
                                        dim, 
                                        shift, 
                                        binsize, 
                                        W, 
                                        H, 
                                        batch)
-        return lut_grad, x_grad
+        return d_lut, d_x
 
 
 class TrilinearInterpolation(torch.nn.Module):
@@ -111,21 +112,23 @@ class TetrahedralInterpolationFunction(torch.autograd.Function):
     @staticmethod
     def backward(ctx, lut_grad: torch.Tensor, x_grad: torch.Tensor):
         
+        d_lut = d_x = None
         lut, x, int_package, float_package = ctx.saved_variables
         dim, shift, W, H, batch = int_package
         dim, shift, W, H, batch = int(dim), int(shift), int(W), int(H), int(batch)
         binsize = float(float_package[0])
-        lut_grad = lut_grad.detach().clone()  
-        assert 1 == tetrahedral.backward(x.contiguous(), 
+        d_lut = lut_grad.detach().clone() 
+            
+        assert 1 == trilinear.backward(x.contiguous(), 
                                        x_grad.contiguous(), 
-                                       lut_grad.contiguous(),
+                                       d_lut.contiguous(),
                                        dim, 
                                        shift, 
                                        binsize, 
                                        W, 
                                        H, 
                                        batch)
-        return lut_grad, x_grad
+        return d_lut, d_x
 
 
 class TetrahedralInterpolation(torch.nn.Module):
