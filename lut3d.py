@@ -18,10 +18,10 @@ class Lut3D(nn.Module):
 
 class TrilinearInterpolationFunction(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, lut, x:torch.Tensor):
+    def forward(ctx, lut: torch.Tensor, x: torch.Tensor):
         x = x.contiguous()
 
-        output = x.new(x.size())
+        output = x.new(x.size()).contiguous()
         dim = lut.size()[-1]
         shift = dim ** 3
         binsize = 1.000001 / (dim-1)

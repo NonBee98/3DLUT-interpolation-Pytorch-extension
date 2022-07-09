@@ -1,21 +1,6 @@
 #include "trilinear.h"
-
-inline void clip(int &num, const int min, const int max)
-{
-    if (num > max)
-    {
-        num = max;
-    }
-    if (num < min)
-    {
-        num = min;
-    }
-}
-
-inline int getIndex(const int a, const int b, const int c, const int d, const int dim0, const int dim1, const int dim2, const int dim3)
-{
-    return a * dim1 * dim2 * dim3 + b * dim2 * dim3 + c * dim3 + d;
-}
+#define CLIP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+#define INDEX(a, b, c, d, d1, d2, d3) ((a) * (d1) * (d2) * (d3) + (b) * (d2) * (d3) + (c) * (d3) + (d))
 
 void TriLinearForwardCpu(const float *lut, const float *image, float *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
 
@@ -61,9 +46,9 @@ void TriLinearForwardCpu(const float *lut, const float *image, float *output, co
         {
             for (int w = 0; w < width; ++w)
             {
-                int r_index = getIndex(batch_index, 0, h, w, batch, 3, height, width);
-                int g_index = getIndex(batch_index, 1, h, w, batch, 3, height, width);
-                int b_index = getIndex(batch_index, 2, h, w, batch, 3, height, width);
+                int r_index = INDEX(batch_index, 0, h, w, 3, height, width);
+                int g_index = INDEX(batch_index, 1, h, w, 3, height, width);
+                int b_index = INDEX(batch_index, 2, h, w, 3, height, width);
 
                 float r = image[r_index];
                 float g = image[g_index];
@@ -80,12 +65,12 @@ void TriLinearForwardCpu(const float *lut, const float *image, float *output, co
                 int g_1 = g_0 + 1;
                 int b_1 = b_0 + 1;
 
-                clip(r_0, 0, dim - 1);
-                clip(g_0, 0, dim - 1);
-                clip(b_0, 0, dim - 1);
-                clip(r_1, 0, dim - 1);
-                clip(g_1, 0, dim - 1);
-                clip(b_1, 0, dim - 1);
+                r_0 = CLIP(r_0, 0, dim - 1);
+                g_0 = CLIP(g_0, 0, dim - 1);
+                b_0 = CLIP(b_0, 0, dim - 1);
+                r_1 = CLIP(r_1, 0, dim - 1);
+                g_1 = CLIP(g_1, 0, dim - 1);
+                b_1 = CLIP(b_1, 0, dim - 1);
 
                 float r_d = r_loc - r_0;
                 float g_d = g_loc - g_0;
@@ -100,32 +85,32 @@ void TriLinearForwardCpu(const float *lut, const float *image, float *output, co
                 float w011 = (1 - r_d) * g_d * b_d;
                 float w111 = r_d * g_d * b_d;
 
-                output[r_index] = w000 * lut[getIndex(0, r_0, g_0, b_0, 3, dim, dim, dim)] +
-                                  w100 * lut[getIndex(0, r_1, g_0, b_0, 3, dim, dim, dim)] +
-                                  w010 * lut[getIndex(0, r_0, g_1, b_0, 3, dim, dim, dim)] +
-                                  w110 * lut[getIndex(0, r_1, g_1, b_0, 3, dim, dim, dim)] +
-                                  w001 * lut[getIndex(0, r_0, g_0, b_1, 3, dim, dim, dim)] +
-                                  w101 * lut[getIndex(0, r_1, g_0, b_1, 3, dim, dim, dim)] +
-                                  w011 * lut[getIndex(0, r_0, g_1, b_1, 3, dim, dim, dim)] +
-                                  w111 * lut[getIndex(0, r_1, g_1, b_1, 3, dim, dim, dim)];
+                output[r_index] = w000 * lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)] +
+                                  w100 * lut[INDEX(0, r_1, g_0, b_0, dim, dim, dim)] +
+                                  w010 * lut[INDEX(0, r_0, g_1, b_0, dim, dim, dim)] +
+                                  w110 * lut[INDEX(0, r_1, g_1, b_0, dim, dim, dim)] +
+                                  w001 * lut[INDEX(0, r_0, g_0, b_1, dim, dim, dim)] +
+                                  w101 * lut[INDEX(0, r_1, g_0, b_1, dim, dim, dim)] +
+                                  w011 * lut[INDEX(0, r_0, g_1, b_1, dim, dim, dim)] +
+                                  w111 * lut[INDEX(0, r_1, g_1, b_1, dim, dim, dim)];
 
-                output[g_index] = w000 * lut[getIndex(1, r_0, g_0, b_0, 3, dim, dim, dim)] +
-                                  w100 * lut[getIndex(1, r_1, g_0, b_0, 3, dim, dim, dim)] +
-                                  w010 * lut[getIndex(1, r_0, g_1, b_0, 3, dim, dim, dim)] +
-                                  w110 * lut[getIndex(1, r_1, g_1, b_0, 3, dim, dim, dim)] +
-                                  w001 * lut[getIndex(1, r_0, g_0, b_1, 3, dim, dim, dim)] +
-                                  w101 * lut[getIndex(1, r_1, g_0, b_1, 3, dim, dim, dim)] +
-                                  w011 * lut[getIndex(1, r_0, g_1, b_1, 3, dim, dim, dim)] +
-                                  w111 * lut[getIndex(1, r_1, g_1, b_1, 3, dim, dim, dim)];
+                output[g_index] = w000 * lut[INDEX(1, r_0, g_0, b_0, dim, dim, dim)] +
+                                  w100 * lut[INDEX(1, r_1, g_0, b_0, dim, dim, dim)] +
+                                  w010 * lut[INDEX(1, r_0, g_1, b_0, dim, dim, dim)] +
+                                  w110 * lut[INDEX(1, r_1, g_1, b_0, dim, dim, dim)] +
+                                  w001 * lut[INDEX(1, r_0, g_0, b_1, dim, dim, dim)] +
+                                  w101 * lut[INDEX(1, r_1, g_0, b_1, dim, dim, dim)] +
+                                  w011 * lut[INDEX(1, r_0, g_1, b_1, dim, dim, dim)] +
+                                  w111 * lut[INDEX(1, r_1, g_1, b_1, dim, dim, dim)];
 
-                output[b_index] = w000 * lut[getIndex(2, r_0, g_0, b_0, 3, dim, dim, dim)] +
-                                  w100 * lut[getIndex(2, r_1, g_0, b_0, 3, dim, dim, dim)] +
-                                  w010 * lut[getIndex(2, r_0, g_1, b_0, 3, dim, dim, dim)] +
-                                  w110 * lut[getIndex(2, r_1, g_1, b_0, 3, dim, dim, dim)] +
-                                  w001 * lut[getIndex(2, r_0, g_0, b_1, 3, dim, dim, dim)] +
-                                  w101 * lut[getIndex(2, r_1, g_0, b_1, 3, dim, dim, dim)] +
-                                  w011 * lut[getIndex(2, r_0, g_1, b_1, 3, dim, dim, dim)] +
-                                  w111 * lut[getIndex(2, r_1, g_1, b_1, 3, dim, dim, dim)];
+                output[b_index] = w000 * lut[INDEX(2, r_0, g_0, b_0, dim, dim, dim)] +
+                                  w100 * lut[INDEX(2, r_1, g_0, b_0, dim, dim, dim)] +
+                                  w010 * lut[INDEX(2, r_0, g_1, b_0, dim, dim, dim)] +
+                                  w110 * lut[INDEX(2, r_1, g_1, b_0, dim, dim, dim)] +
+                                  w001 * lut[INDEX(2, r_0, g_0, b_1, dim, dim, dim)] +
+                                  w101 * lut[INDEX(2, r_1, g_0, b_1, dim, dim, dim)] +
+                                  w011 * lut[INDEX(2, r_0, g_1, b_1, dim, dim, dim)] +
+                                  w111 * lut[INDEX(2, r_1, g_1, b_1, dim, dim, dim)];
             }
         }
     }
