@@ -100,10 +100,13 @@ __global__ void TriLinearBackward(const int nthreads, const float *image, const 
 {
     CUDA_1D_KERNEL_LOOP(index, nthreads)
     {
+        int r_index = index;
+        int g_index = index + width * height;
+        int b_index = index + width * height * 2;
 
-        float r = image[index];
-        float g = image[index + width * height];
-        float b = image[index + width * height * 2];
+        float r = image[r_index];
+        float g = image[g_index];
+        float b = image[b_index];
 
         float r_loc = r * (dim - 1);
         float g_loc = g * (dim - 1);
@@ -145,32 +148,32 @@ __global__ void TriLinearBackward(const int nthreads, const float *image, const 
         int id011 = INDEX(0, r_0, g_1, b_1, dim, dim, dim);
         int id111 = INDEX(0, r_1, g_1, b_1, dim, dim, dim);
 
-        atomicAdd(lut_grad + id000, image_grad[index] * w000);
-        atomicAdd(lut_grad + id100, image_grad[index] * w100);
-        atomicAdd(lut_grad + id010, image_grad[index] * w010);
-        atomicAdd(lut_grad + id110, image_grad[index] * w110);
-        atomicAdd(lut_grad + id001, image_grad[index] * w001);
-        atomicAdd(lut_grad + id101, image_grad[index] * w101);
-        atomicAdd(lut_grad + id011, image_grad[index] * w011);
-        atomicAdd(lut_grad + id111, image_grad[index] * w111);
+        atomicAdd(lut_grad + id000, image_grad[r_index] * w000);
+        atomicAdd(lut_grad + id100, image_grad[r_index] * w100);
+        atomicAdd(lut_grad + id010, image_grad[r_index] * w010);
+        atomicAdd(lut_grad + id110, image_grad[r_index] * w110);
+        atomicAdd(lut_grad + id001, image_grad[r_index] * w001);
+        atomicAdd(lut_grad + id101, image_grad[r_index] * w101);
+        atomicAdd(lut_grad + id011, image_grad[r_index] * w011);
+        atomicAdd(lut_grad + id111, image_grad[r_index] * w111);
 
-        atomicAdd(lut_grad + id000 + shift, image_grad[index + width * height] * w000);
-        atomicAdd(lut_grad + id100 + shift, image_grad[index + width * height] * w100);
-        atomicAdd(lut_grad + id010 + shift, image_grad[index + width * height] * w010);
-        atomicAdd(lut_grad + id110 + shift, image_grad[index + width * height] * w110);
-        atomicAdd(lut_grad + id001 + shift, image_grad[index + width * height] * w001);
-        atomicAdd(lut_grad + id101 + shift, image_grad[index + width * height] * w101);
-        atomicAdd(lut_grad + id011 + shift, image_grad[index + width * height] * w011);
-        atomicAdd(lut_grad + id111 + shift, image_grad[index + width * height] * w111);
+        atomicAdd(lut_grad + id000 + shift, image_grad[g_index] * w000);
+        atomicAdd(lut_grad + id100 + shift, image_grad[g_index] * w100);
+        atomicAdd(lut_grad + id010 + shift, image_grad[g_index] * w010);
+        atomicAdd(lut_grad + id110 + shift, image_grad[g_index] * w110);
+        atomicAdd(lut_grad + id001 + shift, image_grad[g_index] * w001);
+        atomicAdd(lut_grad + id101 + shift, image_grad[g_index] * w101);
+        atomicAdd(lut_grad + id011 + shift, image_grad[g_index] * w011);
+        atomicAdd(lut_grad + id111 + shift, image_grad[g_index] * w111);
 
-        atomicAdd(lut_grad + id000 + shift * 2, image_grad[index + width * height * 2] * w000);
-        atomicAdd(lut_grad + id100 + shift * 2, image_grad[index + width * height * 2] * w100);
-        atomicAdd(lut_grad + id010 + shift * 2, image_grad[index + width * height * 2] * w010);
-        atomicAdd(lut_grad + id110 + shift * 2, image_grad[index + width * height * 2] * w110);
-        atomicAdd(lut_grad + id001 + shift * 2, image_grad[index + width * height * 2] * w001);
-        atomicAdd(lut_grad + id101 + shift * 2, image_grad[index + width * height * 2] * w101);
-        atomicAdd(lut_grad + id011 + shift * 2, image_grad[index + width * height * 2] * w011);
-        atomicAdd(lut_grad + id111 + shift * 2, image_grad[index + width * height * 2] * w111);
+        atomicAdd(lut_grad + id000 + shift * 2, image_grad[b_index] * w000);
+        atomicAdd(lut_grad + id100 + shift * 2, image_grad[b_index] * w100);
+        atomicAdd(lut_grad + id010 + shift * 2, image_grad[b_index] * w010);
+        atomicAdd(lut_grad + id110 + shift * 2, image_grad[b_index] * w110);
+        atomicAdd(lut_grad + id001 + shift * 2, image_grad[b_index] * w001);
+        atomicAdd(lut_grad + id101 + shift * 2, image_grad[b_index] * w101);
+        atomicAdd(lut_grad + id011 + shift * 2, image_grad[b_index] * w011);
+        atomicAdd(lut_grad + id111 + shift * 2, image_grad[b_index] * w111);
     }
 }
 
