@@ -16,9 +16,9 @@ if __name__=='__main__':
     img = np.expand_dims(imgRaw, 0)
     img = torch.tensor(img)
     img = torch.permute(img, (0,3,1,2))
-    tri_interp = TrilinearInterpolation()
+    interp = TetrahedralInterpolation()
 
-    _, new_img = tri_interp(lut, img)
+    _, new_img = interp(lut, img)
 
     new_img = new_img.cpu().detach()
     new_img = torch.squeeze(new_img)
