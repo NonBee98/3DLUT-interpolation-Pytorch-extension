@@ -76,41 +76,108 @@ void TetrahedralForwardCpu(const float *lut, const float *image, float *output, 
                 float g_d = g_loc - g_0;
                 float b_d = b_loc - b_0;
 
-                float w000 = (1 - r_d) * (1 - g_d) * (1 - b_d);
-                float w100 = r_d * (1 - g_d) * (1 - b_d);
-                float w010 = (1 - r_d) * g_d * (1 - b_d);
-                float w110 = r_d * g_d * (1 - b_d);
-                float w001 = (1 - r_d) * (1 - g_d) * b_d;
-                float w101 = r_d * (1 - g_d) * b_d;
-                float w011 = (1 - r_d) * g_d * b_d;
-                float w111 = r_d * g_d * b_d;
+                if (r_d > g_d && g_d > b_d)
+                {
+                    output[r_index] = (1 - r_d) * lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (r_d - g_d) * lut[INDEX(0, r_1, g_0, b_0, dim, dim, dim)] +
+                                      (g_d - b_d) * lut[INDEX(0, r_1, g_1, b_0, dim, dim, dim)] +
+                                      b_d * lut[INDEX(0, r_1, g_1, b_1, dim, dim, dim)];
 
-                output[r_index] = w000 * lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)] +
-                                  w100 * lut[INDEX(0, r_1, g_0, b_0, dim, dim, dim)] +
-                                  w010 * lut[INDEX(0, r_0, g_1, b_0, dim, dim, dim)] +
-                                  w110 * lut[INDEX(0, r_1, g_1, b_0, dim, dim, dim)] +
-                                  w001 * lut[INDEX(0, r_0, g_0, b_1, dim, dim, dim)] +
-                                  w101 * lut[INDEX(0, r_1, g_0, b_1, dim, dim, dim)] +
-                                  w011 * lut[INDEX(0, r_0, g_1, b_1, dim, dim, dim)] +
-                                  w111 * lut[INDEX(0, r_1, g_1, b_1, dim, dim, dim)];
+                    output[g_index] = (1 - r_d) * lut[INDEX(1, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (r_d - g_d) * lut[INDEX(1, r_1, g_0, b_0, dim, dim, dim)] +
+                                      (g_d - b_d) * lut[INDEX(1, r_1, g_1, b_0, dim, dim, dim)] +
+                                      b_d * lut[INDEX(1, r_1, g_1, b_1, dim, dim, dim)];
 
-                output[g_index] = w000 * lut[INDEX(1, r_0, g_0, b_0, dim, dim, dim)] +
-                                  w100 * lut[INDEX(1, r_1, g_0, b_0, dim, dim, dim)] +
-                                  w010 * lut[INDEX(1, r_0, g_1, b_0, dim, dim, dim)] +
-                                  w110 * lut[INDEX(1, r_1, g_1, b_0, dim, dim, dim)] +
-                                  w001 * lut[INDEX(1, r_0, g_0, b_1, dim, dim, dim)] +
-                                  w101 * lut[INDEX(1, r_1, g_0, b_1, dim, dim, dim)] +
-                                  w011 * lut[INDEX(1, r_0, g_1, b_1, dim, dim, dim)] +
-                                  w111 * lut[INDEX(1, r_1, g_1, b_1, dim, dim, dim)];
+                    output[b_index] = (1 - r_d) * lut[INDEX(2, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (r_d - g_d) * lut[INDEX(2, r_1, g_0, b_0, dim, dim, dim)] +
+                                      (g_d - b_d) * lut[INDEX(2, r_1, g_1, b_0, dim, dim, dim)] +
+                                      b_d * lut[INDEX(2, r_1, g_1, b_1, dim, dim, dim)];
+                }
+                else if (r_d > g_d && r_d > b_d)
+                {
+                    output[r_index] = (1 - r_d) * lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (r_d - b_d) * lut[INDEX(0, r_1, g_0, b_0, dim, dim, dim)] +
+                                      (b_d - g_d) * lut[INDEX(0, r_1, g_0, b_1, dim, dim, dim)] +
+                                      g_d * lut[INDEX(0, r_1, g_1, b_1, dim, dim, dim)];
 
-                output[b_index] = w000 * lut[INDEX(2, r_0, g_0, b_0, dim, dim, dim)] +
-                                  w100 * lut[INDEX(2, r_1, g_0, b_0, dim, dim, dim)] +
-                                  w010 * lut[INDEX(2, r_0, g_1, b_0, dim, dim, dim)] +
-                                  w110 * lut[INDEX(2, r_1, g_1, b_0, dim, dim, dim)] +
-                                  w001 * lut[INDEX(2, r_0, g_0, b_1, dim, dim, dim)] +
-                                  w101 * lut[INDEX(2, r_1, g_0, b_1, dim, dim, dim)] +
-                                  w011 * lut[INDEX(2, r_0, g_1, b_1, dim, dim, dim)] +
-                                  w111 * lut[INDEX(2, r_1, g_1, b_1, dim, dim, dim)];
+                    output[g_index] = (1 - r_d) * lut[INDEX(1, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (r_d - b_d) * lut[INDEX(1, r_1, g_0, b_0, dim, dim, dim)] +
+                                      (b_d - g_d) * lut[INDEX(1, r_1, g_0, b_1, dim, dim, dim)] +
+                                      g_d * lut[INDEX(1, r_1, g_1, b_1, dim, dim, dim)];
+
+                    output[b_index] = (1 - r_d) * lut[INDEX(2, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (r_d - b_d) * lut[INDEX(2, r_1, g_0, b_0, dim, dim, dim)] +
+                                      (b_d - g_d) * lut[INDEX(2, r_1, g_0, b_1, dim, dim, dim)] +
+                                      g_d * lut[INDEX(2, r_1, g_1, b_1, dim, dim, dim)];
+                }
+                else if (r_d > b_d && g_d <= b_d && r_d <= b_d)
+                {
+                    output[r_index] = (1 - b_d) * lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (b_d - r_d) * lut[INDEX(0, r_0, g_0, b_1, dim, dim, dim)] +
+                                      (r_d - g_d) * lut[INDEX(0, r_1, g_0, b_1, dim, dim, dim)] +
+                                      g_d * lut[INDEX(0, r_1, g_1, b_1, dim, dim, dim)];
+
+                    output[g_index] = (1 - b_d) * lut[INDEX(1, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (b_d - r_d) * lut[INDEX(1, r_0, g_0, b_1, dim, dim, dim)] +
+                                      (r_d - g_d) * lut[INDEX(1, r_1, g_0, b_1, dim, dim, dim)] +
+                                      g_d * lut[INDEX(1, r_1, g_1, b_1, dim, dim, dim)];
+
+                    output[b_index] = (1 - b_d) * lut[INDEX(2, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (b_d - r_d) * lut[INDEX(2, r_0, g_0, b_1, dim, dim, dim)] +
+                                      (r_d - g_d) * lut[INDEX(2, r_1, g_0, b_1, dim, dim, dim)] +
+                                      g_d * lut[INDEX(2, r_1, g_1, b_1, dim, dim, dim)];
+                }
+                else if (r_d <= g_d && b_d > g_d)
+                {
+                    output[r_index] = (1 - b_d) * lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (b_d - g_d) * lut[INDEX(0, r_0, g_0, b_1, dim, dim, dim)] +
+                                      (g_d - r_d) * lut[INDEX(0, r_0, g_1, b_1, dim, dim, dim)] +
+                                      r_d * lut[INDEX(0, r_1, g_1, b_1, dim, dim, dim)];
+
+                    output[g_index] = (1 - b_d) * lut[INDEX(1, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (b_d - g_d) * lut[INDEX(1, r_0, g_0, b_1, dim, dim, dim)] +
+                                      (g_d - r_d) * lut[INDEX(1, r_0, g_1, b_1, dim, dim, dim)] +
+                                      r_d * lut[INDEX(1, r_1, g_1, b_1, dim, dim, dim)];
+
+                    output[b_index] = (1 - b_d) * lut[INDEX(2, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (b_d - g_d) * lut[INDEX(2, r_0, g_0, b_1, dim, dim, dim)] +
+                                      (g_d - r_d) * lut[INDEX(2, r_0, g_1, b_1, dim, dim, dim)] +
+                                      r_d * lut[INDEX(2, r_1, g_1, b_1, dim, dim, dim)];
+                }
+                else if (r_d <= g_d && b_d > r_d)
+                {
+                    output[r_index] = (1 - g_d) * lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (g_d - b_d) * lut[INDEX(0, r_0, g_1, b_0, dim, dim, dim)] +
+                                      (b_d - r_d) * lut[INDEX(0, r_0, g_1, b_1, dim, dim, dim)] +
+                                      r_d * lut[INDEX(0, r_1, g_1, b_1, dim, dim, dim)];
+
+                    output[g_index] = (1 - g_d) * lut[INDEX(1, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (g_d - b_d) * lut[INDEX(1, r_0, g_1, b_0, dim, dim, dim)] +
+                                      (b_d - r_d) * lut[INDEX(1, r_0, g_1, b_1, dim, dim, dim)] +
+                                      r_d * lut[INDEX(1, r_1, g_1, b_1, dim, dim, dim)];
+
+                    output[b_index] = (1 - g_d) * lut[INDEX(2, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (g_d - b_d) * lut[INDEX(2, r_0, g_1, b_0, dim, dim, dim)] +
+                                      (b_d - r_d) * lut[INDEX(2, r_0, g_1, b_1, dim, dim, dim)] +
+                                      r_d * lut[INDEX(2, r_1, g_1, b_1, dim, dim, dim)];
+                }
+                else
+                {
+                    output[r_index] = (1 - g_d) * lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (g_d - r_d) * lut[INDEX(0, r_0, g_1, b_0, dim, dim, dim)] +
+                                      (r_d - b_d) * lut[INDEX(0, r_1, g_1, b_0, dim, dim, dim)] +
+                                      b_d * lut[INDEX(0, r_1, g_1, b_1, dim, dim, dim)];
+
+                    output[g_index] = (1 - g_d) * lut[INDEX(1, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (g_d - r_d) * lut[INDEX(1, r_0, g_1, b_0, dim, dim, dim)] +
+                                      (r_d - b_d) * lut[INDEX(1, r_1, g_1, b_0, dim, dim, dim)] +
+                                      b_d * lut[INDEX(1, r_1, g_1, b_1, dim, dim, dim)];
+
+                    output[b_index] = (1 - g_d) * lut[INDEX(2, r_0, g_0, b_0, dim, dim, dim)] +
+                                      (g_d - r_d) * lut[INDEX(2, r_0, g_1, b_0, dim, dim, dim)] +
+                                      (r_d - b_d) * lut[INDEX(2, r_1, g_1, b_0, dim, dim, dim)] +
+                                      b_d * lut[INDEX(2, r_1, g_1, b_1, dim, dim, dim)];
+                }
             }
         }
     }
