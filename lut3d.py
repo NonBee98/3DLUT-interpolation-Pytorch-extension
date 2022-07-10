@@ -9,7 +9,7 @@ class Lut3D(nn.Module):
 
         self.LUT = torch.ones((3,dim,dim,dim), dtype=torch.float)
         self.LUT = nn.Parameter(self.LUT, requires_grad=True)
-        self.TrilinearInterpolation = TrilinearInterpolation()
+        self.TrilinearInterpolation = TetrahedralInterpolation()
 
     def forward(self, x):
         _, output = self.TrilinearInterpolation(self.LUT, x)
