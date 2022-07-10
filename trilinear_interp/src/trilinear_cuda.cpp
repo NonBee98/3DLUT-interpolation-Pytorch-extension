@@ -41,7 +41,6 @@ int trilinear_forward_cuda(torch::Tensor lut, torch::Tensor image, torch::Tensor
 int trilinear_backward_cuda(torch::Tensor image, torch::Tensor image_grad, torch::Tensor lut_grad,
                             int lut_dim, int shift, float binsize, int width, int height, int batch)
 {
-    // Grab the input tensor
     CHECK_INPUT(image);
     CHECK_INPUT(image_grad);
     CHECK_INPUT(lut_grad);
