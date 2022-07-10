@@ -1,7 +1,7 @@
 #ifndef _TETRAHEDRAL_KERNEL
 #define _TETRAHEDRAL_KERNEL
-
-#include <THC/THC.h>
+#include <cuda.h>
+#include <cuda_runtime.h>
 
 __global__ void TetrahedralForward(const int nthreads, const float *lut, const float *image, float *output, const int dim, const int shift, const float binsize, const int width, const int height, const int batch);
 

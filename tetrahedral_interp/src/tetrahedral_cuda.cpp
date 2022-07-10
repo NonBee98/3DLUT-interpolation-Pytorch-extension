@@ -1,6 +1,5 @@
 #include "tetrahedral_kernel.h"
 #include <torch/extension.h>
-#include <THC/THC.h>
 
 int tetrahedral_forward_cuda(torch::Tensor lut, torch::Tensor image, torch::Tensor output,
                              int lut_dim, int shift, float binsize, int width, int height, int batch)

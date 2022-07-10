@@ -9,7 +9,8 @@
 #define CLIP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define INDEX(a, b, c, d, d1, d2, d3) ((a) * (d1) * (d2) * (d3) + (b) * (d2) * (d3) + (c) * (d3) + (d))
 
-__global__ void TriLinearForward(const int nthreads, const float *lut, const float *image, float *output, const int dim, const int shift, const float binsize, const int width, const int height, const int batch)
+template <typename scalar_t>
+__global__ void TriLinearForward(const int nthreads, const scalar_t *lut, const scalar_t *image, scalar_t *output, const int dim, const int shift, const float binsize, const int width, const int height, const int batch)
 {
     CUDA_1D_KERNEL_LOOP(index, nthreads)
     {
@@ -17,13 +18,13 @@ __global__ void TriLinearForward(const int nthreads, const float *lut, const flo
         int g_index = index + width * height;
         int b_index = index + width * height * 2;
 
-        float r = image[r_index];
-        float g = image[g_index];
-        float b = image[b_index];
+        scalar_t r = image[r_index];
+        scalar_t g = image[g_index];
+        scalar_t b = image[b_index];
 
-        float r_loc = r * (dim - 1);
-        float g_loc = g * (dim - 1);
-        float b_loc = b * (dim - 1);
+        scalar_t r_loc = r * (dim - 1);
+        scalar_t g_loc = g * (dim - 1);
+        scalar_t b_loc = b * (dim - 1);
 
         int r_0 = floor(r_loc);
         int g_0 = floor(g_loc);
@@ -39,18 +40,18 @@ __global__ void TriLinearForward(const int nthreads, const float *lut, const flo
         g_1 = CLIP(g_1, 0, dim - 1);
         b_1 = CLIP(b_1, 0, dim - 1);
 
-        float r_d = r_loc - r_0;
-        float g_d = g_loc - g_0;
-        float b_d = b_loc - b_0;
+        scalar_t r_d = r_loc - r_0;
+        scalar_t g_d = g_loc - g_0;
+        scalar_t b_d = b_loc - b_0;
 
-        float w000 = (1 - r_d) * (1 - g_d) * (1 - b_d);
-        float w100 = r_d * (1 - g_d) * (1 - b_d);
-        float w010 = (1 - r_d) * g_d * (1 - b_d);
-        float w110 = r_d * g_d * (1 - b_d);
-        float w001 = (1 - r_d) * (1 - g_d) * b_d;
-        float w101 = r_d * (1 - g_d) * b_d;
-        float w011 = (1 - r_d) * g_d * b_d;
-        float w111 = r_d * g_d * b_d;
+        scalar_t w000 = (1 - r_d) * (1 - g_d) * (1 - b_d);
+        scalar_t w100 = r_d * (1 - g_d) * (1 - b_d);
+        scalar_t w010 = (1 - r_d) * g_d * (1 - b_d);
+        scalar_t w110 = r_d * g_d * (1 - b_d);
+        scalar_t w001 = (1 - r_d) * (1 - g_d) * b_d;
+        scalar_t w101 = r_d * (1 - g_d) * b_d;
+        scalar_t w011 = (1 - r_d) * g_d * b_d;
+        scalar_t w111 = r_d * g_d * b_d;
 
         int id000 = INDEX(0, r_0, g_0, b_0, dim, dim, dim);
         int id100 = INDEX(0, r_1, g_0, b_0, dim, dim, dim);
@@ -96,7 +97,8 @@ int TriLinearForwardLaucher(const float *lut, const float *image, float *output,
     return 1;
 }
 
-__global__ void TriLinearBackward(const int nthreads, const float *image, const float *image_grad, float *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int batch)
+template <typename scalar_t>
+__global__ void TriLinearBackward(const int nthreads, const scalar_t *image, const scalar_t *image_grad, scalar_t *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int batch)
 {
     CUDA_1D_KERNEL_LOOP(index, nthreads)
     {
@@ -104,13 +106,13 @@ __global__ void TriLinearBackward(const int nthreads, const float *image, const 
         int g_index = index + width * height;
         int b_index = index + width * height * 2;
 
-        float r = image[r_index];
-        float g = image[g_index];
-        float b = image[b_index];
+        scalar_t r = image[r_index];
+        scalar_t g = image[g_index];
+        scalar_t b = image[b_index];
 
-        float r_loc = r * (dim - 1);
-        float g_loc = g * (dim - 1);
-        float b_loc = b * (dim - 1);
+        scalar_t r_loc = r * (dim - 1);
+        scalar_t g_loc = g * (dim - 1);
+        scalar_t b_loc = b * (dim - 1);
 
         int r_0 = floor(r_loc);
         int g_0 = floor(g_loc);
@@ -126,18 +128,18 @@ __global__ void TriLinearBackward(const int nthreads, const float *image, const 
         g_1 = CLIP(g_1, 0, dim - 1);
         b_1 = CLIP(b_1, 0, dim - 1);
 
-        float r_d = r_loc - r_0;
-        float g_d = g_loc - g_0;
-        float b_d = b_loc - b_0;
+        scalar_t r_d = r_loc - r_0;
+        scalar_t g_d = g_loc - g_0;
+        scalar_t b_d = b_loc - b_0;
 
-        float w000 = (1 - r_d) * (1 - g_d) * (1 - b_d);
-        float w100 = r_d * (1 - g_d) * (1 - b_d);
-        float w010 = (1 - r_d) * g_d * (1 - b_d);
-        float w110 = r_d * g_d * (1 - b_d);
-        float w001 = (1 - r_d) * (1 - g_d) * b_d;
-        float w101 = r_d * (1 - g_d) * b_d;
-        float w011 = (1 - r_d) * g_d * b_d;
-        float w111 = r_d * g_d * b_d;
+        scalar_t w000 = (1 - r_d) * (1 - g_d) * (1 - b_d);
+        scalar_t w100 = r_d * (1 - g_d) * (1 - b_d);
+        scalar_t w010 = (1 - r_d) * g_d * (1 - b_d);
+        scalar_t w110 = r_d * g_d * (1 - b_d);
+        scalar_t w001 = (1 - r_d) * (1 - g_d) * b_d;
+        scalar_t w101 = r_d * (1 - g_d) * b_d;
+        scalar_t w011 = (1 - r_d) * g_d * b_d;
+        scalar_t w111 = r_d * g_d * b_d;
 
         int id000 = INDEX(0, r_0, g_0, b_0, dim, dim, dim);
         int id100 = INDEX(0, r_1, g_0, b_0, dim, dim, dim);
