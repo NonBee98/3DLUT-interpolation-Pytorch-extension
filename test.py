@@ -16,7 +16,7 @@ if __name__=='__main__':
     img = np.expand_dims(imgRaw, 0)
     img = torch.tensor(img)
     img = torch.permute(img, (0,3,1,2))
-    interp = TetrahedralInterpolation()
+    interp = TrilinearInterpolation()
 
     _, new_img = interp(lut, img)
 

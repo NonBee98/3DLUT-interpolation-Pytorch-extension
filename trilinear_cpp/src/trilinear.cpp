@@ -71,10 +71,12 @@ void TriLinearForwardCpu(const scalar_t *lut, const scalar_t *image, scalar_t *o
                 g_1 = CLIP(g_1, 0, dim - 1);
                 b_1 = CLIP(b_1, 0, dim - 1);
 
+                // compute deltas
                 scalar_t r_d = r_loc - r_0;
                 scalar_t g_d = g_loc - g_0;
                 scalar_t b_d = b_loc - b_0;
 
+                // compute weights of nearest 8 points
                 scalar_t w000 = (1 - r_d) * (1 - g_d) * (1 - b_d);
                 scalar_t w100 = r_d * (1 - g_d) * (1 - b_d);
                 scalar_t w010 = (1 - r_d) * g_d * (1 - b_d);
@@ -84,32 +86,33 @@ void TriLinearForwardCpu(const scalar_t *lut, const scalar_t *image, scalar_t *o
                 scalar_t w011 = (1 - r_d) * g_d * b_d;
                 scalar_t w111 = r_d * g_d * b_d;
 
-                output[r_index] = w000 * lut[INDEX(0, r_0, g_0, b_0, dim, dim, dim)] +
-                                  w100 * lut[INDEX(0, r_1, g_0, b_0, dim, dim, dim)] +
-                                  w010 * lut[INDEX(0, r_0, g_1, b_0, dim, dim, dim)] +
-                                  w110 * lut[INDEX(0, r_1, g_1, b_0, dim, dim, dim)] +
-                                  w001 * lut[INDEX(0, r_0, g_0, b_1, dim, dim, dim)] +
-                                  w101 * lut[INDEX(0, r_1, g_0, b_1, dim, dim, dim)] +
-                                  w011 * lut[INDEX(0, r_0, g_1, b_1, dim, dim, dim)] +
-                                  w111 * lut[INDEX(0, r_1, g_1, b_1, dim, dim, dim)];
+                // compute relative loctions of R channel
+                int id000 = INDEX(0, r_0, g_0, b_0, dim, dim, dim);
+                int id100 = INDEX(0, r_1, g_0, b_0, dim, dim, dim);
+                int id010 = INDEX(0, r_0, g_1, b_0, dim, dim, dim);
+                int id110 = INDEX(0, r_1, g_1, b_0, dim, dim, dim);
+                int id001 = INDEX(0, r_0, g_0, b_1, dim, dim, dim);
+                int id101 = INDEX(0, r_1, g_0, b_1, dim, dim, dim);
+                int id011 = INDEX(0, r_0, g_1, b_1, dim, dim, dim);
+                int id111 = INDEX(0, r_1, g_1, b_1, dim, dim, dim);
 
-                output[g_index] = w000 * lut[INDEX(1, r_0, g_0, b_0, dim, dim, dim)] +
-                                  w100 * lut[INDEX(1, r_1, g_0, b_0, dim, dim, dim)] +
-                                  w010 * lut[INDEX(1, r_0, g_1, b_0, dim, dim, dim)] +
-                                  w110 * lut[INDEX(1, r_1, g_1, b_0, dim, dim, dim)] +
-                                  w001 * lut[INDEX(1, r_0, g_0, b_1, dim, dim, dim)] +
-                                  w101 * lut[INDEX(1, r_1, g_0, b_1, dim, dim, dim)] +
-                                  w011 * lut[INDEX(1, r_0, g_1, b_1, dim, dim, dim)] +
-                                  w111 * lut[INDEX(1, r_1, g_1, b_1, dim, dim, dim)];
+                // compute R
+                output[r_index] = w000 * lut[id000] + w100 * lut[id100] +
+                                  w010 * lut[id010] + w110 * lut[id110] +
+                                  w001 * lut[id001] + w101 * lut[id101] +
+                                  w011 * lut[id011] + w111 * lut[id111];
 
-                output[b_index] = w000 * lut[INDEX(2, r_0, g_0, b_0, dim, dim, dim)] +
-                                  w100 * lut[INDEX(2, r_1, g_0, b_0, dim, dim, dim)] +
-                                  w010 * lut[INDEX(2, r_0, g_1, b_0, dim, dim, dim)] +
-                                  w110 * lut[INDEX(2, r_1, g_1, b_0, dim, dim, dim)] +
-                                  w001 * lut[INDEX(2, r_0, g_0, b_1, dim, dim, dim)] +
-                                  w101 * lut[INDEX(2, r_1, g_0, b_1, dim, dim, dim)] +
-                                  w011 * lut[INDEX(2, r_0, g_1, b_1, dim, dim, dim)] +
-                                  w111 * lut[INDEX(2, r_1, g_1, b_1, dim, dim, dim)];
+                // compute G
+                output[g_index] = w000 * lut[id000 + shift] + w100 * lut[id100 + shift] +
+                                  w010 * lut[id010 + shift] + w110 * lut[id110 + shift] +
+                                  w001 * lut[id001 + shift] + w101 * lut[id101 + shift] +
+                                  w011 * lut[id011 + shift] + w111 * lut[id111 + shift];
+
+                // compute B
+                output[b_index] = w000 * lut[id000 + shift * 2] + w100 * lut[id100 + shift * 2] +
+                                  w010 * lut[id010 + shift * 2] + w110 * lut[id110 + shift * 2] +
+                                  w001 * lut[id001 + shift * 2] + w101 * lut[id101 + shift * 2] +
+                                  w011 * lut[id011 + shift * 2] + w111 * lut[id111 + shift * 2];
             }
         }
     }
