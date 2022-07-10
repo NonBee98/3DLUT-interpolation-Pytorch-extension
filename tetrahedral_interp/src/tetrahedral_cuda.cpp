@@ -1,4 +1,5 @@
 #include "tetrahedral_kernel.h"
+#include <c10/cuda/CUDAGuard.h>
 
 #define CHECK_CUDA(x) TORCH_CHECK(x.device().is_cuda(), #x " must be a CUDA tensor")
 #define CHECK_CONTIGUOUS(x) TORCH_CHECK(x.is_contiguous(), #x " must be contiguous")
@@ -15,6 +16,7 @@ int tetrahedral_forward_cuda(torch::Tensor lut, torch::Tensor image, torch::Tens
     CHECK_INPUT(image);
     CHECK_INPUT(output);
 
+    const at::cuda::OptionalCUDAGuard device_guard(device_of(lut));
     const int nElements = height * width * batch;
     cudaError_t err;
 
@@ -45,6 +47,7 @@ int tetrahedral_backward_cuda(torch::Tensor image, torch::Tensor image_grad, tor
     CHECK_INPUT(image_grad);
     CHECK_INPUT(lut_grad);
 
+    const at::cuda::OptionalCUDAGuard device_guard(device_of(image));
     const int nElements = height * width * batch;
     cudaError_t err;
 
