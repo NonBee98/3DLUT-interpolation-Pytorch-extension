@@ -79,24 +79,6 @@ __global__ void TriLinearForward(const int nthreads, const scalar_t *lut, const 
     }
 }
 
-int TriLinearForwardLaucher(const float *lut, const float *image, float *output, const int lut_dim, const int shift, const float binsize, const int width, const int height, const int batch)
-{
-    const int kThreadsPerBlock = 1024;
-    const int output_size = height * width * batch;
-    cudaError_t err;
-
-    TriLinearForward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock>>>(output_size, lut, image, output, lut_dim, shift, binsize, width, height, batch);
-
-    err = cudaGetLastError();
-    if (cudaSuccess != err)
-    {
-        fprintf(stderr, "cudaCheckError() failed : %s\n", cudaGetErrorString(err));
-        exit(-1);
-    }
-
-    return 1;
-}
-
 template <typename scalar_t>
 __global__ void TriLinearBackward(const int nthreads, const scalar_t *image, const scalar_t *image_grad, scalar_t *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int batch)
 {
@@ -177,22 +159,4 @@ __global__ void TriLinearBackward(const int nthreads, const scalar_t *image, con
         atomicAdd(lut_grad + id011 + shift * 2, image_grad[b_index] * w011);
         atomicAdd(lut_grad + id111 + shift * 2, image_grad[b_index] * w111);
     }
-}
-
-int TriLinearBackwardLaucher(const float *image, const float *image_grad, float *lut_grad, const int lut_dim, const int shift, const float binsize, const int width, const int height, const int batch)
-{
-    const int kThreadsPerBlock = 1024;
-    const int output_size = height * width * batch;
-    cudaError_t err;
-
-    TriLinearBackward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock>>>(output_size, image, image_grad, lut_grad, lut_dim, shift, binsize, width, height, batch);
-
-    err = cudaGetLastError();
-    if (cudaSuccess != err)
-    {
-        fprintf(stderr, "cudaCheckError() failed : %s\n", cudaGetErrorString(err));
-        exit(-1);
-    }
-
-    return 1;
 }
