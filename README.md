@@ -25,3 +25,6 @@ test.py shows how to apply 3Dlut to the demo image with this implementation.
 python3 test.py
 ```
 test.ipynb jupyter notebook shows how to train a custom 3Dlut, you can use it to verify the correctness of the implementation interactively.
+
+### Notification
+If you want to run cutsom extensions on multiple GPUs, please use Pytorch's DistributedDataParallel rather than simple DataParallel. The latter one seems have some bugs on cutsom extensions.
