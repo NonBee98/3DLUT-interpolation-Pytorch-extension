@@ -56,16 +56,17 @@ class TrilinearInterpolationFunction(torch.autograd.Function):
         dim, shift, W, H, batch = int(dim), int(shift), int(W), int(H), int(batch)
         binsize = float(float_package[0])
         d_lut = lut_grad.detach().clone() 
-            
-        assert 1 == trilinear.backward(x.contiguous(), 
-                                       x_grad.contiguous(), 
-                                       d_lut.contiguous(),
-                                       dim, 
-                                       shift, 
-                                       binsize, 
-                                       W, 
-                                       H, 
-                                       batch)
+        
+        if ctx.needs_input_grad[0]:
+            assert 1 == trilinear.backward(x.contiguous(), 
+                                        x_grad.contiguous(), 
+                                        d_lut.contiguous(),
+                                        dim, 
+                                        shift, 
+                                        binsize, 
+                                        W, 
+                                        H, 
+                                        batch)
         return d_lut, d_x
 
 
@@ -118,16 +119,16 @@ class TetrahedralInterpolationFunction(torch.autograd.Function):
         dim, shift, W, H, batch = int(dim), int(shift), int(W), int(H), int(batch)
         binsize = float(float_package[0])
         d_lut = lut_grad.detach().clone() 
-            
-        assert 1 == trilinear.backward(x.contiguous(), 
-                                       x_grad.contiguous(), 
-                                       d_lut.contiguous(),
-                                       dim, 
-                                       shift, 
-                                       binsize, 
-                                       W, 
-                                       H, 
-                                       batch)
+        if ctx.needs_input_grad[0]:
+            assert 1 == trilinear.backward(x.contiguous(), 
+                                        x_grad.contiguous(), 
+                                        d_lut.contiguous(),
+                                        dim, 
+                                        shift, 
+                                        binsize, 
+                                        W, 
+                                        H, 
+                                        batch)
         return d_lut, d_x
 
 
