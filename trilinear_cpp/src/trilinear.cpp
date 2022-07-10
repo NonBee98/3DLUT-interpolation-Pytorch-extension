@@ -1,25 +1,28 @@
 #include "trilinear.h"
+
 #define CLIP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define INDEX(a, b, c, d, d1, d2, d3) ((a) * (d1) * (d2) * (d3) + (b) * (d2) * (d3) + (c) * (d3) + (d))
 
 template <typename scalar_t>
-void TriLinearForwardCpu(const scalar_t *lut, const scalar_t *image, scalar_t *output, const int dim, const int shift, const scalar_t binsize, const int width, const int height, const int channels, const int batch);
+void TriLinearForwardCpu(const scalar_t *lut, const scalar_t *image, scalar_t *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
 
 template <typename scalar_t>
-void TriLinearBackwardCpu(const scalar_t *image, const scalar_t *image_grad, scalar_t *lut_grad, const int dim, const int shift, const scalar_t binsize, const int width, const int height, const int channels, const int batch);
+void TriLinearBackwardCpu(const scalar_t *image, const scalar_t *image_grad, scalar_t *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
 
 int trilinear_forward(torch::Tensor lut, torch::Tensor image, torch::Tensor output,
                       int lut_dim, int shift, float binsize, int width, int height, int batch)
 {
-    // Grab the input tensor
-    float *lut_flat = lut.data_ptr<float>();
-    float *image_flat = image.data_ptr<float>();
-    float *output_flat = output.data_ptr<float>();
-
     auto image_size = image.sizes();
     int channels = image_size[1];
 
-    TriLinearForwardCpu(lut_flat, image_flat, output_flat, lut_dim, shift, binsize, width, height, channels, batch);
+    AT_DISPATCH_FLOATING_TYPES(lut.scalar_type(), "trilinear_forward_cpp",
+                               ([&]
+                                { TriLinearForwardCpu<scalar_t>(
+                                      lut.data_ptr<scalar_t>(),
+                                      image.data_ptr<scalar_t>(),
+                                      output.data_ptr<scalar_t>(),
+                                      lut_dim, shift, binsize, width,
+                                      height, channels, batch); }));
 
     return 1;
 }
@@ -27,21 +30,23 @@ int trilinear_forward(torch::Tensor lut, torch::Tensor image, torch::Tensor outp
 int trilinear_backward(torch::Tensor image, torch::Tensor image_grad, torch::Tensor lut_grad,
                        int lut_dim, int shift, float binsize, int width, int height, int batch)
 {
-    // Grab the input tensor
-    float *image_grad_flat = image_grad.data_ptr<float>();
-    float *image_flat = image.data_ptr<float>();
-    float *lut_grad_flat = lut_grad.data_ptr<float>();
-
     auto image_size = image.sizes();
     int channels = image_size[1];
 
-    TriLinearBackwardCpu(image_flat, image_grad_flat, lut_grad_flat, lut_dim, shift, binsize, width, height, channels, batch);
+    AT_DISPATCH_FLOATING_TYPES(image.scalar_type(), "trilinear_backward_cpp",
+                               ([&]
+                                { TriLinearBackwardCpu<scalar_t>(
+                                      image.data_ptr<scalar_t>(),
+                                      image_grad.data_ptr<scalar_t>(),
+                                      lut_grad.data_ptr<scalar_t>(),
+                                      lut_dim, shift, binsize, width,
+                                      height, channels, batch); }));
 
     return 1;
 }
 
 template <typename scalar_t>
-void TriLinearForwardCpu(const scalar_t *lut, const scalar_t *image, scalar_t *output, const int dim, const int shift, const scalar_t binsize, const int width, const int height, const int channels, const int batch)
+void TriLinearForwardCpu(const scalar_t *lut, const scalar_t *image, scalar_t *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch)
 {
     for (int batch_index = 0; batch_index < batch; ++batch_index)
     {
@@ -120,7 +125,7 @@ void TriLinearForwardCpu(const scalar_t *lut, const scalar_t *image, scalar_t *o
 }
 
 template <typename scalar_t>
-void TriLinearBackwardCpu(const scalar_t *image, const scalar_t *image_grad, scalar_t *lut_grad, const int dim, const int shift, const scalar_t binsize, const int width, const int height, const int channels, const int batch)
+void TriLinearBackwardCpu(const scalar_t *image, const scalar_t *image_grad, scalar_t *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch)
 {
     for (int batch_index = 0; batch_index < batch; ++batch_index)
     {

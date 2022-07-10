@@ -16,16 +16,16 @@ if __name__=='__main__':
     img = np.expand_dims(imgRaw, 0)
     img = torch.tensor(img)
     img = torch.permute(img, (0,3,1,2))
-    interp = TrilinearInterpolation()
+    interp = TetrahedralInterpolation()
 
     _, new_img = interp(lut, img)
 
     new_img = new_img.cpu().detach()
     new_img = torch.squeeze(new_img)
     new_img = torch.permute(new_img, (1,2,0)).numpy()
-    new_img = cv2.cvtColor(new_img, cv2.COLOR_RGB2BGR)
     new_img *= 255
     new_img = new_img.astype(np.uint8)
+    new_img = cv2.cvtColor(new_img, cv2.COLOR_RGB2BGR)
     cv2.imwrite("test.jpg", new_img)
 
     # new_img = table_interpolation_tetrahedral(imgRaw, lutRaw.table)

@@ -2,22 +2,26 @@
 #define CLIP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define INDEX(a, b, c, d, d1, d2, d3) ((a) * (d1) * (d2) * (d3) + (b) * (d2) * (d3) + (c) * (d3) + (d))
 
-void TetrahedralForwardCpu(const float *lut, const float *image, float *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
+template <typename scalar_t>
+void TetrahedralForwardCpu(const scalar_t *lut, const scalar_t *image, scalar_t *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
 
-void TetrahedralBackwardCpu(const float *image, const float *image_grad, float *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
+template <typename scalar_t>
+void TetrahedralBackwardCpu(const scalar_t *image, const scalar_t *image_grad, scalar_t *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch);
 
 int tetrahedral_forward(torch::Tensor lut, torch::Tensor image, torch::Tensor output,
                         int lut_dim, int shift, float binsize, int width, int height, int batch)
 {
-    // Grab the input tensor
-    float *lut_flat = lut.data_ptr<float>();
-    float *image_flat = image.data_ptr<float>();
-    float *output_flat = output.data_ptr<float>();
-
     auto image_size = image.sizes();
     int channels = image_size[1];
 
-    TetrahedralForwardCpu(lut_flat, image_flat, output_flat, lut_dim, shift, binsize, width, height, channels, batch);
+    AT_DISPATCH_FLOATING_TYPES(lut.scalar_type(), "tetrahedral_forward_cpp",
+                               ([&]
+                                { TetrahedralForwardCpu<scalar_t>(
+                                      lut.data_ptr<scalar_t>(),
+                                      image.data_ptr<scalar_t>(),
+                                      output.data_ptr<scalar_t>(),
+                                      lut_dim, shift, binsize, width,
+                                      height, channels, batch); }));
 
     return 1;
 }
@@ -25,20 +29,23 @@ int tetrahedral_forward(torch::Tensor lut, torch::Tensor image, torch::Tensor ou
 int tetrahedral_backward(torch::Tensor image, torch::Tensor image_grad, torch::Tensor lut_grad,
                          int lut_dim, int shift, float binsize, int width, int height, int batch)
 {
-    // Grab the input tensor
-    float *image_grad_flat = image_grad.data_ptr<float>();
-    float *image_flat = image.data_ptr<float>();
-    float *lut_grad_flat = lut_grad.data_ptr<float>();
-
     auto image_size = image.sizes();
     int channels = image_size[1];
 
-    TetrahedralBackwardCpu(image_flat, image_grad_flat, lut_grad_flat, lut_dim, shift, binsize, width, height, channels, batch);
+    AT_DISPATCH_FLOATING_TYPES(image.scalar_type(), "tetrahedral_backward_cpp",
+                               ([&]
+                                { TetrahedralBackwardCpu<scalar_t>(
+                                      image.data_ptr<scalar_t>(),
+                                      image_grad.data_ptr<scalar_t>(),
+                                      lut_grad.data_ptr<scalar_t>(),
+                                      lut_dim, shift, binsize, width,
+                                      height, channels, batch); }));
 
     return 1;
 }
 
-void TetrahedralForwardCpu(const float *lut, const float *image, float *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch)
+template <typename scalar_t>
+void TetrahedralForwardCpu(const scalar_t *lut, const scalar_t *image, scalar_t *output, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch)
 {
     for (int batch_index = 0; batch_index < batch; ++batch_index)
     {
@@ -50,13 +57,13 @@ void TetrahedralForwardCpu(const float *lut, const float *image, float *output, 
                 int g_index = INDEX(batch_index, 1, h, w, 3, height, width);
                 int b_index = INDEX(batch_index, 2, h, w, 3, height, width);
 
-                float r = image[r_index];
-                float g = image[g_index];
-                float b = image[b_index];
+                scalar_t r = image[r_index];
+                scalar_t g = image[g_index];
+                scalar_t b = image[b_index];
 
-                float r_loc = r * (dim - 1);
-                float g_loc = g * (dim - 1);
-                float b_loc = b * (dim - 1);
+                scalar_t r_loc = r * (dim - 1);
+                scalar_t g_loc = g * (dim - 1);
+                scalar_t b_loc = b * (dim - 1);
 
                 int r_0 = floor(r_loc);
                 int g_0 = floor(g_loc);
@@ -72,9 +79,9 @@ void TetrahedralForwardCpu(const float *lut, const float *image, float *output, 
                 g_1 = CLIP(g_1, 0, dim - 1);
                 b_1 = CLIP(b_1, 0, dim - 1);
 
-                float r_d = r_loc - r_0;
-                float g_d = g_loc - g_0;
-                float b_d = b_loc - b_0;
+                scalar_t r_d = r_loc - r_0;
+                scalar_t g_d = g_loc - g_0;
+                scalar_t b_d = b_loc - b_0;
 
                 if (r_d > g_d && g_d > b_d)
                 {
@@ -183,7 +190,8 @@ void TetrahedralForwardCpu(const float *lut, const float *image, float *output, 
     }
 }
 
-void TetrahedralBackwardCpu(const float *image, const float *image_grad, float *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch)
+template <typename scalar_t>
+void TetrahedralBackwardCpu(const scalar_t *image, const scalar_t *image_grad, scalar_t *lut_grad, const int dim, const int shift, const float binsize, const int width, const int height, const int channels, const int batch)
 {
     const int output_size = height * width;
 
@@ -192,17 +200,17 @@ void TetrahedralBackwardCpu(const float *image, const float *image_grad, float *
         const int batch_start_index = batch_index * output_size * channels;
         for (int index = 0; index < output_size; ++index)
         {
-            float r = image[batch_start_index + index];
-            float g = image[batch_start_index + index + output_size];
-            float b = image[batch_start_index + index + output_size * 2];
+            scalar_t r = image[batch_start_index + index];
+            scalar_t g = image[batch_start_index + index + output_size];
+            scalar_t b = image[batch_start_index + index + output_size * 2];
 
             int r_0 = floor(r / binsize);
             int g_0 = floor(g / binsize);
             int b_0 = floor(b / binsize);
 
-            float r_d = fmod(r, binsize) / binsize;
-            float g_d = fmod(g, binsize) / binsize;
-            float b_d = fmod(b, binsize) / binsize;
+            scalar_t r_d = fmod(r, binsize) / binsize;
+            scalar_t g_d = fmod(g, binsize) / binsize;
+            scalar_t b_d = fmod(b, binsize) / binsize;
 
             int id000 = b_0 + g_0 * dim + r_0 * dim * dim;
             int id100 = b_0 + 1 + g_0 * dim + r_0 * dim * dim;
@@ -213,14 +221,14 @@ void TetrahedralBackwardCpu(const float *image, const float *image_grad, float *
             int id011 = b_0 + (g_0 + 1) * dim + (r_0 + 1) * dim * dim;
             int id111 = b_0 + 1 + (g_0 + 1) * dim + (r_0 + 1) * dim * dim;
 
-            float w000 = (1 - r_d) * (1 - g_d) * (1 - b_d);
-            float w100 = r_d * (1 - g_d) * (1 - b_d);
-            float w010 = (1 - r_d) * g_d * (1 - b_d);
-            float w110 = r_d * g_d * (1 - b_d);
-            float w001 = (1 - r_d) * (1 - g_d) * b_d;
-            float w101 = r_d * (1 - g_d) * b_d;
-            float w011 = (1 - r_d) * g_d * b_d;
-            float w111 = r_d * g_d * b_d;
+            scalar_t w000 = (1 - r_d) * (1 - g_d) * (1 - b_d);
+            scalar_t w100 = r_d * (1 - g_d) * (1 - b_d);
+            scalar_t w010 = (1 - r_d) * g_d * (1 - b_d);
+            scalar_t w110 = r_d * g_d * (1 - b_d);
+            scalar_t w001 = (1 - r_d) * (1 - g_d) * b_d;
+            scalar_t w101 = r_d * (1 - g_d) * b_d;
+            scalar_t w011 = (1 - r_d) * g_d * b_d;
+            scalar_t w111 = r_d * g_d * b_d;
 
             lut_grad[id000] += w000 * image_grad[batch_start_index + index];
             lut_grad[id100] += w100 * image_grad[batch_start_index + index];
