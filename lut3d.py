@@ -15,6 +15,17 @@ class Lut3D(nn.Module):
         _, output = self.interpolation(self.LUT, x)
 
         return output
+    
+    @staticmethod
+    def lut_loss(lut):
+        less = (lut[(lut < 0)]) ** 2
+        upper = (lut[(lut > 1)] - 1) ** 2
+        dx = lut[:, :-1, :, :] - lut[:, 1:, :, :]
+        dy = lut[:, :, :-1, :] - lut[:, :, 1:, :]
+        dz = lut[:, :, :, :-1] - lut[:, :, :, 1:]
+        mn =  torch.relu(dx).mean() + torch.relu(dy).mean() + torch.relu(dz).mean()
+        tv =  torch.mean(dx ** 2) + torch.mean(dy ** 2)  + torch.mean(dz ** 2)
+        return less.sum() + upper.sum() + mn + tv
 
 class TrilinearInterpolationFunction(torch.autograd.Function):
     @staticmethod

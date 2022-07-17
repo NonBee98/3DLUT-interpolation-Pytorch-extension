@@ -38,7 +38,7 @@ if __name__=='__main__':
             j += 1
             imgs = torch.permute(imgs, (0,3,1,2))
             targets = torch.permute(targets, (0,3,1,2))
-            print('\r' + "[Batch: {}/{}]".format(j, len(dataloader)), flush=True)
+            print('\r' + "[Epoch: {} Batch: {:2d}/{}]".format(i+1, j, len(dataloader)), flush=True, end="")
 
             new_img = lut(imgs)
             lut_l = lut_loss(lut.LUT)
@@ -55,7 +55,7 @@ if __name__=='__main__':
         total_l1_loss /= j
         total_lut_loss /= j
         if (i+1) % 100 == 0:
-                print()
-                print("Epoch: {}, loss: {:4f}, lut loss {:.4f}, l1 loss {:.4f}".format(i+1, total_loss, total_lut_loss, total_l1_loss))
-                torch.save(lut.state_dict(), save_params)
+            print()
+            print("Epoch: {}, loss: {:4f}, lut loss {:.4f}, l1 loss {:.4f}".format(i+1, total_loss, total_lut_loss, total_l1_loss))
+            torch.save(lut.state_dict(), save_params)
     torch.save(lut.state_dict(), save_params)

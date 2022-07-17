@@ -5,7 +5,7 @@ import os
 import torch
 
 class TrainDataset(Dataset):
-    def __init__(self, path="train_img", transform=None):
+    def __init__(self, path="train_img_np", transform=None):
         train_path = os.path.join(path, "input")
         target_path = os.path.join(path, 'target')
         self.train_files = glob.glob(os.path.join(train_path, "*.npy"))

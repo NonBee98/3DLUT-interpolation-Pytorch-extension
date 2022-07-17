@@ -8,8 +8,8 @@ import glob
 from tqdm import tqdm
 
 if __name__=='__main__':
-    img_dir = './test_imgs'
-    save_dir = './train_img'
+    img_dir = './train_img'
+    save_dir = './train_img_np'
     input_dir = os.path.join(save_dir, "input")
     output_dir = os.path.join(save_dir, "target")
     if not os.path.exists(input_dir):
@@ -17,7 +17,7 @@ if __name__=='__main__':
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     img_list = glob.glob(os.path.join(img_dir, "*.jpg"))
-    lutRaw = colour.read_LUT("./35_Free_LUTs/Ava 614.CUBE")
+    lutRaw = colour.read_LUT("./35_Free_LUTs/Chemical 168.CUBE")
     lut = lutRaw.table.astype(np.float32)
     lut = torch.tensor(lut)
     lut = torch.permute(lut, (3, 0, 1, 2))
