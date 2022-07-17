@@ -4,7 +4,8 @@ class Lut1D(nn.Module):
     def __init__(self, dim=64):
         super(Lut1D, self).__init__()
         self.dim = dim
-        self.LUT = torch.linspace(0, 1, dim)
+        # self.LUT = torch.linspace(0, 1, dim)
+        self.LUT = torch.ones(self.dim, dtype=torch.float32)
         self.LUT = nn.Parameter(self.LUT, requires_grad=True)
     
     def get_loc_val(self, loc):

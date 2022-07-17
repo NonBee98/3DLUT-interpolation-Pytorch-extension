@@ -12,6 +12,7 @@ class Lut3D(nn.Module):
         self.interpolation = TrilinearInterpolation()
 
     def forward(self, x):
+        x = torch.clamp(x, 0, 1)
         _, output = self.interpolation(self.LUT, x)
 
         return output
@@ -78,7 +79,7 @@ class TrilinearInterpolationFunction(torch.autograd.Function):
                                         W, 
                                         H, 
                                         batch)
-        return d_lut, d_x
+        return d_lut, x_grad
 
 
 class TrilinearInterpolation(torch.nn.Module):
@@ -140,7 +141,7 @@ class TetrahedralInterpolationFunction(torch.autograd.Function):
                                         W, 
                                         H, 
                                         batch)
-        return d_lut, d_x
+        return d_lut, x_grad
 
 
 class TetrahedralInterpolation(torch.nn.Module):
